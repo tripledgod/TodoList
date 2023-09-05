@@ -1,5 +1,8 @@
 /* eslint-disable react/prop-types */
-export default function TaskList({ todos, toggleTodoStatus, doneTaskList, startEditTodo, deleteTodo }) {
+export default function TaskList({ todos, handleDoneTodo, doneTaskList, startEditTodo, deleteTodo }) {
+  const onChangeCheckbox = (idTodo) => (event) => {
+    handleDoneTodo(idTodo, event.target.checked)
+  }
   return (
     <>
       <div className='mb-2'>
@@ -10,7 +13,7 @@ export default function TaskList({ todos, toggleTodoStatus, doneTaskList, startE
         {todos.map((todo) => (
           <div className='grid grid-cols-4 gap-1' key={todo.id}>
             <div className='col-span-3 flex items-center'>
-              <input type='checkbox' checked={todo.done} onChange={() => toggleTodoStatus(todo.id)} className='' />
+              <input type='checkbox' checked={todo.done} onChange={onChangeCheckbox(todo.id)} />
               <span className={`text-gray-400 ml-2 mr-10 ${todo.done ? 'line-through' : ''}`}>{todo.name}</span>
             </div>
             <div className='col-span-1 flex justify-end'>

@@ -1,30 +1,38 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+
 import TaskInput from './TaskInput'
 import TaskList from './TaskList'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function Todolist() {
   const [todos, setTodos] = useState([])
   const [currentTodo, setCurrentTodo] = useState(null)
+  const undoneTodos = todos.filter((todo) => !todo.done)
+  const doneTodos = todos.filter((todo) => todo.done)
 
-  const addTodo = (newTodo) => {
-    const updatedTodos = [...todos, { ...newTodo, id: new Date().toISOString(), done: false }]
+  useEffect(() => {
+    const todosString = localStorage.getItem('todos')
+    const todosObj = JSON.parse(todosString || '[]')
+    setTodos(todosObj)
+  }, [])
+
+  const addTodo = (name) => {
+    const updatedTodos = [...todos, { id: new Date().toISOString(), done: false, name }]
     setTodos(updatedTodos)
+    localStorage.setItem('todos', JSON.stringify(updatedTodos))
   }
-
-  const toggleTodoStatus = (todoId) => {
-    const updatedTodos = todos.map((todo) => {
-      if (todo.id === todoId) {
-        return {
-          ...todo,
-          done: !todo.done
+  const handleDoneTodo = (id, done) => {
+    setTodos((prev) => {
+      return prev.map((todo) => {
+        if (todo.id === id) {
+          return { ...todo, done }
         }
-      }
-      return todo
+        return todo
+      })
     })
-    setTodos(updatedTodos)
   }
+
   const startEditTodo = (todoId) => {
     const todoToEdit = todos.find((todo) => todo.id === todoId)
     if (todoToEdit) {
@@ -32,47 +40,40 @@ export default function Todolist() {
     }
   }
 
-  // const editTodo = (newName) => {
-  //   setCurrentTodo((prev) => {
-  //     if (prev) return { ...prev, newName }
-  //     return null
-  //   })
-  // }
-  // const editTodo = () => {
-  //   setTodos((prev) => {
-  //     return prev.map((todo) => {
-  //       if (todo.id === currentTodo.id) {
-  //         return currentTodo
-  //       }
-  //       return todo
-  //     })
-  //   })
-  //   setCurrentTodo(null)
-  // }
-  const editTodo = (todoId, newName) => {
-    const updatedTodos = todos.map((todo) => {
-      if (todo.id === todoId) {
-        return {
-          ...todo,
-          name: newName
-          // currentTodo
+  const editTodo = (name) => {
+    setCurrentTodo((prev) => {
+      if (prev) return { ...prev, name }
+      return null
+    })
+  }
+  const finishEditTodo = () => {
+    setTodos((prev) => {
+      return prev.map((todo) => {
+        if (todo.id === currentTodo.id) {
+          return currentTodo
         }
+        return todo
+      })
+    })
+    setCurrentTodo(null)
+
+    const updatedTodos = todos.map((todo) => {
+      if (todo.id === currentTodo.id) {
+        return currentTodo
       }
       return todo
     })
-    setTodos(updatedTodos)
-    setCurrentTodo(null)
+    localStorage.setItem('todos', JSON.stringify(updatedTodos))
   }
 
   const deleteTodo = (todoId) => {
     const updatedTodos = todos.filter((todo) => todo.id !== todoId)
     setTodos(updatedTodos)
+    localStorage.setItem('todos', JSON.stringify(updatedTodos))
   }
-  const undoneTodos = todos.filter((todo) => !todo.done)
-  const doneTodos = todos.filter((todo) => todo.done)
 
   return (
-    <div className=' ml-auto  p-2 bg-gray-300/90'>
+    <div className=' ml-auto rounded-lg p-2 bg-orange-200/90'>
       <div className='m-2 p-2 bg-white rounded-md'>
         <h2 className='text-black font-bold mb-2'>To do list javascript</h2>
         <TaskInput
@@ -80,19 +81,18 @@ export default function Todolist() {
           currentTodo={currentTodo}
           setCurrentTodo={setCurrentTodo}
           editTodo={editTodo}
-          // finishEditTodo={finishEditTodo}
-          // updatedTodos={editTodo.updatedTodos}
+          finishEditTodo={finishEditTodo}
         />
         <TaskList
           todos={undoneTodos}
-          toggleTodoStatus={toggleTodoStatus}
+          handleDoneTodo={handleDoneTodo}
           editTodo={editTodo}
           deleteTodo={deleteTodo}
           startEditTodo={startEditTodo}
         />
         <TaskList
           todos={doneTodos}
-          toggleTodoStatus={toggleTodoStatus}
+          handleDoneTodo={handleDoneTodo}
           doneTaskList
           editTodo={editTodo}
           deleteTodo={deleteTodo}
